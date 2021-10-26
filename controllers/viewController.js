@@ -26,7 +26,6 @@ exports.getTourPage = catchAsync(async (req, res, next) => {
   });
 
   if (!tour) {
-    console.log('No Tour');
     return next(new AppError('There is no tour with that name', 404));
   }
 

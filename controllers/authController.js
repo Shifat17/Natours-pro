@@ -24,7 +24,6 @@ const createSendToken = (user, statusCode, res) => {
   // if (process.env.NODE_ENV === 'production') cookieOptions.secure = true;
 
   res.cookie('jwt', token, cookieOptions);
-  console.log('cookie');
 
   res.status(statusCode).json({
     status: 'success',
@@ -57,7 +56,7 @@ exports.login = catchAsync(async (req, res, next) => {
   if (!email || !password) {
     return new AppError('Please provide email and Passwor', 400);
   }
-  console.log(email);
+
   //check if the user exist and password is correct
   const user = await User.findOne({ email }).select('+password');
   // if (!user || !(await user.correctPassword(password, user.password))) {
@@ -66,7 +65,6 @@ exports.login = catchAsync(async (req, res, next) => {
   // console.log(user);
 
   if (!user) {
-    console.log(user);
     return next(
       new AppError('Please provide a correct email address or password', 401)
     );
@@ -95,7 +93,6 @@ exports.protect = catchAsync(async (req, res, next) => {
     req.headers.authorization.startsWith('Bearer')
   ) {
     token = req.headers.authorization.split(' ')[1];
-    console.log(token);
   } else if (req.cookies.jwt) {
     token = req.cookies.jwt;
   }
@@ -107,7 +104,6 @@ exports.protect = catchAsync(async (req, res, next) => {
   }
   // 2) verification of token
   const decoded = await promisify(jwt.verify)(token, process.env.JWT_SECRET);
-  console.log(decoded);
 
   // 3) check if user still exist
   const freshUser = await User.findById(decoded.id);
@@ -174,7 +170,7 @@ exports.restricTo = (...roles) => {
 
 exports.forgotPassword = catchAsync(async (req, res, next) => {
   //get the user based on posted email
-  console.log(req.body.email);
+
   var user = await User.findOne({ email: req.body.email });
   if (!user) {
     return next(new AppError('Please provide a valid email', 401));
@@ -200,7 +196,6 @@ exports.forgotPassword = catchAsync(async (req, res, next) => {
       message: 'Token sent to email',
     });
   } catch (error) {
-    console.log(error);
     user.PasswordResetToken = undefined;
     user.passwordResetExpires = undefined;
     await user.save({ validateBeforeSave: false });
@@ -211,7 +206,6 @@ exports.forgotPassword = catchAsync(async (req, res, next) => {
 });
 
 exports.resetPassword = catchAsync(async (req, res, next) => {
-  console.log(req.params);
   // Get user based on the token
   const hashedToken = crypto
     .createHash('sha256')
@@ -222,7 +216,6 @@ exports.resetPassword = catchAsync(async (req, res, next) => {
     passwordResetToken: hashedToken,
     passwordResetExpires: { $gt: Date.now() },
   });
-  console.log(user);
 
   if (!user) {
     return next(new AppError('Token is invalid or has expired', 401));
